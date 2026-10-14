@@ -2,5 +2,21 @@
   "previewPort": 3000,
   "healthPath": "/",
   "startCommand": "docker compose -f docker-compose.base44.yml up -d",
-  "secrets": []
+  "secrets": [
+    {
+      "name": "STAYS_CLIENT_ID",
+      "description": "client_id da API externa do Stays (Basic auth). É obtido com o time de suporte do Stays. Sem ele a importação de reservas fica desabilitada.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "STAYS_CLIENT_SECRET",
+      "description": "client_secret da API externa do Stays, par do STAYS_CLIENT_ID.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "STAYS_API_BASE_URL",
+      "description": "Opcional. Domínio da API do Stays (ex.: https://play.stays.net/external/v1). Em branco usa o padrão play.stays.net.",
+      "requiredAtBoot": false
+    }
+  ]
 }

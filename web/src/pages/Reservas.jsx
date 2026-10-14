@@ -22,17 +22,25 @@ export default function Reservas() {
   const [resumo, setResumo] = useState(null);
   const [reservas, setReservas] = useState([]);
   const [canais, setCanais] = useState([]);
+  const [staysConfigurado, setStaysConfigurado] = useState(null);
   const [formulario, setFormulario] = useState(FORMULARIO_VAZIO);
   const [carregando, setCarregando] = useState(true);
+  const [sincronizando, setSincronizando] = useState(false);
+  const [avisoSincronizacao, setAvisoSincronizacao] = useState(null);
   const [erro, setErro] = useState(null);
   const [gerando, setGerando] = useState(null);
 
   const carregar = useCallback(async () => {
     try {
-      const [dadosResumo, dadosReservas] = await Promise.all([api.resumo(), api.listarReservas()]);
+      const [dadosResumo, dadosReservas, dadosStays] = await Promise.all([
+        api.resumo(),
+        api.listarReservas(),
+        api.statusStays(),
+      ]);
       setResumo(dadosResumo);
       setReservas(dadosReservas.reservas);
       setCanais(dadosReservas.canais);
+      setStaysConfigurado(dadosStays.configurado);
       setErro(null);
     } catch (falha) {
       setErro(falha.message);
@@ -87,6 +95,24 @@ export default function Reservas() {
     }
   }
 
+  async function sincronizarStays() {
+    setSincronizando(true);
+    setAvisoSincronizacao(null);
+    try {
+      const resultado = await api.sincronizarStays();
+      await carregar();
+      setAvisoSincronizacao(
+        `Stays: ${resultado.criadas} reserva(s) importada(s)` +
+          (resultado.atualizadas ? `, ${resultado.atualizadas} atualizada(s)` : '') +
+          ` — chegadas de ${formatarData(resultado.from)} a ${formatarData(resultado.to)}.`,
+      );
+    } catch (falha) {
+      setErro(falha.message);
+    } finally {
+      setSincronizando(false);
+    }
+  }
+
   if (carregando) return <p className="carregando">Carregando reservas…</p>;
 
   return (
@@ -119,7 +145,32 @@ export default function Reservas() {
       )}
 
       <section className="cartao">
-        <h2>Reservas dos canais</h2>
+        <div className="cartao__cabecalho">
+          <div>
+            <h2>Reservas dos canais</h2>
+            <p className="secundario">
+              Importe as reservas direto do Stays para não digitar as informações à mão.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="botao"
+            disabled={sincronizando || staysConfigurado === false}
+            onClick={sincronizarStays}
+          >
+            {sincronizando ? 'Sincronizando…' : 'Sincronizar com o Stays'}
+          </button>
+        </div>
+
+        <Aviso tipo="ok">{avisoSincronizacao}</Aviso>
+
+        {staysConfigurado === false && (
+          <p className="nota">
+            Integração com o Stays ainda não configurada. Informe <code>STAYS_CLIENT_ID</code> e{' '}
+            <code>STAYS_CLIENT_SECRET</code> para habilitar a importação automática das reservas.
+          </p>
+        )}
+
         <div className="tabela__area">
           <table className="tabela">
             <thead>

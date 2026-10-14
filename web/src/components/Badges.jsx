@@ -4,6 +4,7 @@ export const ESTILO_CANAL = {
   Expedia: 'canal--expedia',
   Decolar: 'canal--decolar',
   Direto: 'canal--direto',
+  Stays: 'canal--stays',
 };
 
 export function BadgeCanal({ canal }) {

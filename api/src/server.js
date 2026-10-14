@@ -2,6 +2,7 @@ import express from 'express';
 import { query } from './db.js';
 import { reservasRouter } from './routes/reservas.js';
 import { checkinsRouter } from './routes/checkins.js';
+import { staysRouter } from './routes/stays.js';
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,7 @@ app.get('/api/resumo', async (_req, res, next) => {
 
 app.use('/api/reservas', reservasRouter);
 app.use('/api/checkins', checkinsRouter);
+app.use('/api/stays', staysRouter);
 
 app.use((erro, _req, res, _next) => {
   console.error(erro);

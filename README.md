@@ -19,4 +19,4 @@ Depois abra <http://localhost:3000>.
 
 Fluxo do app: as reservas chegam pelos canais (Booking.com, Airbnb, Expedia, Decolar ou direto) → gerar o formulário de check-in da reserva → preencher os dados do hóspede → repassar para o **Green** e para a **equipe de governança**.
 
-A chegada de reservas é registrada pelo formulário do painel — não há integração real com os canais ainda. Detalhes do ambiente de desenvolvimento em [`AGENTS.md`](./AGENTS.md).
+As reservas são importadas direto do **Stays** pelo botão *Sincronizar com o Stays* — veja [`AGENTS.md`](./AGENTS.md) para configurar as credenciais (`STAYS_CLIENT_ID` e `STAYS_CLIENT_SECRET`). O formulário do painel continua disponível para registrar uma reserva manualmente.

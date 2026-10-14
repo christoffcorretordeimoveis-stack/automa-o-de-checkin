@@ -16,6 +16,9 @@ export const api = {
   criarReserva: (dados) =>
     requisitar('/reservas', { method: 'POST', body: JSON.stringify(dados) }),
   cancelarReserva: (id) => requisitar(`/reservas/${id}`, { method: 'DELETE' }),
+  statusStays: () => requisitar('/stays/status'),
+  sincronizarStays: (janela = {}) =>
+    requisitar('/stays/sincronizar', { method: 'POST', body: JSON.stringify(janela) }),
   listarCheckins: () => requisitar('/checkins'),
   obterCheckin: (id) => requisitar(`/checkins/${id}`),
   gerarCheckin: (reservaId) =>

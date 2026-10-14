@@ -276,6 +276,11 @@ body {
   color: var(--primaria-escura);
 }
 
+.canal--stays {
+  background: #e7f0ff;
+  color: #1c4e9c;
+}
+
 .status--aguardando_checkin {
   background: #fff2d9;
   color: #8a5200;
@@ -401,6 +406,26 @@ body {
 .botao:disabled {
   opacity: 0.55;
   cursor: default;
+}
+
+/* Nota informativa ---------------------------------------------------- */
+.nota {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px dashed var(--borda);
+  border-radius: 8px;
+  background: #fbfcfd;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.nota code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #eef1f5;
+  color: #3d4757;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
 }
 
 /* Repasses ------------------------------------------------------------ */
