@@ -42,24 +42,30 @@ Importa as reservas direto do PMS, para não digitar as informações à mão. D
 
 ### Verificar a integração sem as credenciais reais
 
-Sobe um stub local que responde o formato documentado e roda a sincronização contra ele (o stub exige o header Basic, então valida também a montagem da autenticação):
+Um stub local responde o formato documentado (e exige o header Basic, então valida também a montagem da autenticação). Em vez de subir o container na mão, use um arquivo de override **em `/tmp`** (nunca no repo) que adiciona o stub como serviço e aponta a API para ele:
 
 ```bash
-# 1) stub numa porta qualquer, na mesma rede do compose
-mkdir -p /tmp/stub   # stub.js e test.mjs descritos abaixo
-docker run -d --rm --name stays-stub --network checkin-app_default \
-  -v /tmp/stub:/script -w /script node:22 node stub.js
+# /tmp/override.yml
+# services:
+#   stays-stub: { image: node:22, working_dir: /script, volumes: [/tmp/stub:/script], command: [node, stub.js] }
+#   api:
+#     environment:
+#       STAYS_CLIENT_ID: dev-client
+#       STAYS_CLIENT_SECRET: dev-secret
+#       STAYS_API_BASE_URL: http://stays-stub:9999
 
-# 2) sincronização de verdade, apontando para o stub
-docker run --rm --network checkin-app_default \
-  -v "$PWD/api":/app -v checkin-app_api_node_modules:/app/node_modules -v /tmp/stub:/script -w /script \
-  -e DATABASE_URL=postgres://checkin:checkin@db:5432/checkin \
-  -e STAYS_API_BASE_URL=http://stays-stub:9999 \
-  -e STAYS_CLIENT_ID=dev-client -e STAYS_CLIENT_SECRET=dev-secret \
-  node:22 node /script/test.mjs
+docker compose -f docker-compose.base44.yml -f /tmp/override.yml up -d stays-stub api
+curl -s http://localhost:3000/api/stays/status     # {"configurado":true,"base":"http://stays-stub:9999"}
 ```
 
-`test.mjs` chama `sincronizarReservasStays()` duas vezes e imprime o resumo + as linhas gravadas; a segunda chamada deve dar `atualizadas` (e não `criadas`). **Apague as reservas criadas pelo teste** (`DELETE /api/reservas/:id`) e remova o container do stub no fim.
+O stub devolve dois ids fixos (`DEVRUN1-001/002`), o que torna a limpeza trivial. Passos e resultado esperado:
+
+1. **Primeira sincronização** (clique do botão no painel ou `POST /api/stays/sincronizar`): `criadas: 2` e as duas linhas aparecem na tabela com canal `Stays`.
+2. **Segunda sincronização:** `criadas: 0, atualizadas: 2` e o total de reservas não muda (upsert por `codigo`).
+3. **Limpeza:** `DELETE /api/reservas/:id` nas duas linhas com código `DEVRUN1-*`.
+4. **Restaurar o ambiente:** `docker compose -f docker-compose.base44.yml -f /tmp/override.yml rm -sf stays-stub` e depois `docker compose -f docker-compose.base44.yml up -d api` — sem isso a API continua recriada com as variáveis do override; confirme com `curl -s http://localhost:3000/api/stays/status` (`configurado:false`) e com `POST /api/stays/sincronizar` respondendo **503**.
+
+O serviço `api` é recriado nesse teste: rode o `up -d` de restauração **antes** de encerrar e não deixe o override ativo.
 
 ## Verificação
 
